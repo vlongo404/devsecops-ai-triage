@@ -1,0 +1,18 @@
+......................                                                   [100%]
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.13.17-final-0 _______________
+
+Name              Stmts   Miss  Cover   Missing
+-----------------------------------------------
+app/__init__.py       1      0   100%
+app/llm.py           47     17    64%   87-94, 97-120, 126
+app/main.py          56      1    98%   96
+app/security.py      54      3    94%   90, 96, 99
+-----------------------------------------------
+TOTAL               158     21    87%
+Required test coverage of 85% reached. Total coverage: 86.71%
+22 passed in 0.56s
+-----------------------------------------------
+TOTAL               158     21    87%
+Required test coverage of 85% reached. Total coverage: 86.71%
+22 passed in 0.28s

@@ -1,0 +1,17 @@
+.git
+.github
+.venv
+__pycache__
+*.pyc
+.env
+.env.*
+tests
+reports
+docs
+/README.md
+/SECURITY.md
+prompts/sdlc
+prompts/*.md
+.pytest_cache
+.ruff_cache
+.coverage

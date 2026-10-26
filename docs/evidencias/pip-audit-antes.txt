@@ -1,0 +1,4 @@
+Found 1 known vulnerability in 1 package
+Name  Version ID              Fix Versions
+----- ------- --------------- ------------
+flask 3.1.2   PYSEC-2026-2151 3.1.3

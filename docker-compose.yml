@@ -1,0 +1,23 @@
+# Deploy agnóstico de cloud: roda em qualquer host com Docker (VM, on-prem, Azure, AWS, GCP).
+services:
+  triage:
+    image: ${IMAGE:-ghcr.io/vlongo404/devsecops-ai-triage:latest}
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"   # exposto só em loopback; publique via reverse proxy com TLS
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+    # Endurecimento do container (CIS Docker Benchmark 5.x)
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 100
+    mem_limit: 256m
+    cpus: 0.5
+    restart: unless-stopped
