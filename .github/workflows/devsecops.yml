@@ -24,7 +24,7 @@ jobs:
     name: "1. Lint + testes unitários"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -42,7 +42,7 @@ jobs:
     name: "2. Secret scanning (Gitleaks)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -57,7 +57,7 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -74,7 +74,7 @@ jobs:
     name: "4. SCA - dependências vulneráveis (pip-audit)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -86,7 +86,7 @@ jobs:
     name: "5. Lint do Dockerfile (Hadolint) + IaC (Trivy config)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
@@ -108,7 +108,7 @@ jobs:
       id-token: write
       security-events: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v3
       - name: Build (local, ainda sem push)
         uses: docker/build-push-action@v6
@@ -166,7 +166,7 @@ jobs:
     needs: [build-e-scan-imagem]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Subir aplicação com provedor mock
         run: |
           docker compose up -d --build
@@ -187,7 +187,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production        # configure "Required reviewers" em Settings > Environments
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Deploy via SSH + docker compose
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
