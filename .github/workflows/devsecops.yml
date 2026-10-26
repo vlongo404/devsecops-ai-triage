@@ -63,16 +63,16 @@ jobs:
           python-version: "3.13"
       - run: pip install "bandit[sarif]==1.8.6"
       - run: bandit -c pyproject.toml -r app -f sarif -o bandit.sarif --exit-zero
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: bandit.sarif
           category: bandit
       - run: bandit -c pyproject.toml -r app -ll    # falha o build em severidade >= MEDIUM
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@v4
         with:
           languages: python
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@v4
 
   # ------------------------------------------------------------------ 4
   sca:
@@ -150,7 +150,7 @@ jobs:
                             f"{v['PkgName']} {v['InstalledVersion']} -> {v.get('FixedVersion')} ({r['Target']})")
           print(f"::notice::Total de achados HIGH/CRITICAL corrigíveis: {n}")
           PY
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: trivy-image.sarif
