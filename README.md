@@ -92,8 +92,8 @@ Além disso: **Dependabot** (pip, Docker, Actions) e **scan semanal agendado**.
 - `pip-audit`: `flask 3.1.2` com PYSEC-2026-2151 → atualizado para 3.1.3 → 0 vulnerabilidades
 - Smoke test com gunicorn: `/health` 200, `/triage` 200, prompt injection 422, cabeçalhos de segurança presentes
 
-**Ainda não executados** (dependem do GitHub Actions e de um Docker daemon): Gitleaks, CodeQL, Hadolint,
-Trivy, Syft, Cosign e ZAP. Rode o pipeline após o primeiro push e anexe os prints.
+**No GitHub Actions** (26/10/2026): os 8 estágios passaram depois de três correções no pipeline, descritas em
+[`docs/ANALISE-VULNERABILIDADES.md`](docs/ANALISE-VULNERABILIDADES.md). O deploy não implanta nada sem os secrets `DEPLOY_*`.
 
 ## Publicando no GitHub (passo a passo)
 

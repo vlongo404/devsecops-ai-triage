@@ -48,23 +48,26 @@ Bandit depois (`bandit.txt`): 0 issues (Low 0, Medium 0, High 0).
 
 Testes (`pytest.txt`): **22 passed**, cobertura **86,7 %** (meta mínima do pipeline: 85 %).
 
-## 3. Verificações que rodam no pipeline (não executadas localmente)
+## 3. Execução no pipeline (GitHub Actions)
 
-Estas etapas estão definidas em `.github/workflows/devsecops.yml` e geram evidência na aba **Actions** e
-**Security** do repositório após o primeiro push. Elas **não** foram executadas na máquina de desenvolvimento
-(o daemon do Docker não estava disponível), então os resultados delas devem ser coletados do GitHub:
+O pipeline `.github/workflows/devsecops.yml` rodou em 26/10/2026 e, depois das correções abaixo, os **8 estágios
+passaram** (Gitleaks, Bandit, CodeQL, pip-audit, Hadolint, Trivy config, build + Trivy da imagem + SBOM + Cosign,
+OWASP ZAP baseline e deploy). Os resultados ficam nas abas **Actions** e **Security** do repositório.
 
-| Etapa | Ferramenta | O que detecta |
-|---|---|---|
-| Secrets | Gitleaks | Chaves e tokens commitados |
-| SAST | CodeQL | Falhas de fluxo de dados (injeção, SSRF...) |
-| IaC/Docker | Hadolint, Trivy config | Más práticas no Dockerfile e no compose |
-| Imagem | Trivy | CVEs no sistema base e nas bibliotecas da imagem |
-| SBOM | Syft (CycloneDX) | Inventário de componentes (cadeia de suprimentos) |
-| Assinatura | Cosign keyless | Integridade e procedência da imagem |
-| DAST | OWASP ZAP baseline | Falhas na aplicação em execução (cabeçalhos, cookies...) |
+Problemas encontrados na primeira execução e como foram resolvidos:
 
-**Para o relatório/slides:** depois do primeiro push, tire prints das abas Actions e Security e anexe-os.
+| # | Estágio | Falha | Correção |
+|---|---|---|---|
+| 5 | Docker/IaC | `aquasecurity/trivy-action@0.28.0` não existe mais, e o job nem iniciava | Trivy passou a rodar pela imagem oficial `aquasec/trivy` via `docker run` |
+| 3 | SAST | O Bandit não gera SARIF sem o extra `bandit[sarif]` | Instalado `bandit[sarif]==1.8.6`; o SARIF agora é publicado no Security |
+| 6 | Imagem | O gate do Trivy encontrou vulnerabilidades HIGH/CRITICAL com correção na imagem | Atualização dos pacotes do sistema (`apt-get upgrade`) e remoção de `pip`/`setuptools` da imagem final; o gate passou na execução seguinte |
+
+Observações honestas:
+
+- No achado 6, a lista exata de CVEs não foi lida (o log exige login). Para o relatório, abra o log do job 6 da
+  primeira execução, ou a aba Security, e anexe a lista. Hoje o pipeline publica cada achado como anotação se o gate falhar.
+- O ZAP baseline tolera avisos (código de saída 2) e só falha em erro. Confira o artefato `zap-report` e registre os avisos, se houver.
+- O estágio de deploy passou sem implantar nada: faltam os secrets `DEPLOY_*` e o aprovador no environment `production`.
 
 ## 4. Riscos residuais aceitos
 
