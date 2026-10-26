@@ -32,7 +32,7 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: ruff check .
       - run: pytest --cov-report=xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: cobertura
           path: coverage.xml
@@ -160,7 +160,7 @@ jobs:
         uses: sigstore/cosign-installer@v3
       - if: github.ref == 'refs/heads/main'
         run: cosign sign --yes $IMAGE:${{ github.sha }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom.cdx.json
@@ -183,7 +183,7 @@ jobs:
           docker run --rm --network host -v "$PWD/zap:/zap/wrk:rw" \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
             -t http://127.0.0.1:8000 -r zap-report.html || [ $? -eq 2 ]
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: zap-report
