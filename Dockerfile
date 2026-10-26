@@ -13,6 +13,13 @@ LABEL org.opencontainers.image.title="devsecops-ai-triage" \
       org.opencontainers.image.source="https://github.com/vlongo404/devsecops-ai-triage"
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PORT=8000
+# Aplica correções de segurança do sistema e remove o pip/setuptools da imagem final
+# (não são necessários em execução e reduzem a superfície de ataque).
+# hadolint ignore=DL3005,DL3008
+RUN apt-get update \
+ && apt-get -y --no-install-recommends upgrade \
+ && rm -rf /var/lib/apt/lists/* \
+ && pip uninstall -y pip setuptools wheel
 RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app --no-create-home app
 
 WORKDIR /srv

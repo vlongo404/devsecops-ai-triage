@@ -132,6 +132,24 @@ jobs:
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
             aquasec/trivy:latest image --severity HIGH,CRITICAL --ignore-unfixed \
             --exit-code 1 ${{ env.IMAGE }}:${{ github.sha }}
+      - name: Trivy - listar achados como anotações (somente se o gate falhar)
+        if: failure()
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image --severity HIGH,CRITICAL --ignore-unfixed \
+            --format json --quiet ${{ env.IMAGE }}:${{ github.sha }} > trivy.json
+          python3 - <<'PY'
+          import json
+          d = json.load(open("trivy.json"))
+          n = 0
+          for r in d.get("Results", []):
+              for v in r.get("Vulnerabilities") or []:
+                  n += 1
+                  if n <= 40:
+                      print(f"::warning title=Trivy {v['Severity']}::{v['VulnerabilityID']} "
+                            f"{v['PkgName']} {v['InstalledVersion']} -> {v.get('FixedVersion')} ({r['Target']})")
+          print(f"::notice::Total de achados HIGH/CRITICAL corrigíveis: {n}")
+          PY
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
