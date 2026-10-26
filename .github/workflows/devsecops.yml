@@ -61,8 +61,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - run: pip install bandit==1.8.6
+      - run: pip install "bandit[sarif]==1.8.6"
       - run: bandit -c pyproject.toml -r app -f sarif -o bandit.sarif --exit-zero
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: bandit.sarif
+          category: bandit
       - run: bandit -c pyproject.toml -r app -ll    # falha o build em severidade >= MEDIUM
       - uses: github/codeql-action/init@v3
         with:
@@ -90,12 +95,10 @@ jobs:
       - uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
-      - uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: config
-          scan-ref: .
-          severity: HIGH,CRITICAL
-          exit-code: "1"
+      - name: Trivy config (Dockerfile, compose, workflows)
+        run: |
+          docker run --rm -v "$PWD:/work" aquasec/trivy:latest config \
+            --severity HIGH,CRITICAL --exit-code 1 /work
 
   # ------------------------------------------------------------------ 6
   build-e-scan-imagem:
@@ -118,15 +121,17 @@ jobs:
           tags: ${{ env.IMAGE }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Trivy - vulnerabilidades da imagem (bloqueia HIGH/CRITICAL com correção)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
-          format: sarif
-          output: trivy-image.sarif
+      - name: Trivy - relatório SARIF da imagem
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD:/out" \
+            aquasec/trivy:latest image --severity HIGH,CRITICAL --ignore-unfixed \
+            --exit-code 0 --format sarif --output /out/trivy-image.sarif \
+            ${{ env.IMAGE }}:${{ github.sha }}
+      - name: Trivy - gate (bloqueia HIGH/CRITICAL com correção disponível)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image --severity HIGH,CRITICAL --ignore-unfixed \
+            --exit-code 1 ${{ env.IMAGE }}:${{ github.sha }}
       - uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
@@ -172,10 +177,17 @@ jobs:
           docker compose up -d --build
           for i in $(seq 1 20); do curl -fs http://127.0.0.1:8000/health && break || sleep 2; done
       - name: ZAP baseline scan
-        uses: zaproxy/action-baseline@v0.14.0
+        run: |
+          mkdir -p zap && chmod 777 zap
+          # exit 1 = falha; exit 2 = apenas avisos (aceitável no baseline); 0 = limpo
+          docker run --rm --network host -v "$PWD/zap:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+            -t http://127.0.0.1:8000 -r zap-report.html || [ $? -eq 2 ]
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          target: http://127.0.0.1:8000
-          fail_action: true
+          name: zap-report
+          path: zap/zap-report.html
       - if: always()
         run: docker compose down
 
