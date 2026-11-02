@@ -1,13 +1,13 @@
 # syntax=docker/dockerfile:1
 # ---- Estágio 1: build das dependências ------------------------------------
-FROM python:3.13-slim AS builder
+FROM python:3.15-slim AS builder
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /build
 COPY requirements.txt .
 RUN pip install --prefix=/install -r requirements.txt
 
 # ---- Estágio 2: imagem final mínima, sem root ------------------------------
-FROM python:3.13-slim
+FROM python:3.15-slim
 LABEL org.opencontainers.image.title="devsecops-ai-triage" \
       org.opencontainers.image.description="Triagem de incidentes com IA - projeto DevSecOps" \
       org.opencontainers.image.source="https://github.com/vlongo404/devsecops-ai-triage"
